@@ -20,6 +20,11 @@ echo "🔨 Building project..."
 cmake -S . -B out -DCMAKE_EXPORT_COMPILE_COMMANDS=ON 
 cmake --build out
 
+echo "🔗 Linking compile_commands.json for LSP support..."
+if [ ! -L "compile_commands.json" ]; then
+    ln -s out/compile_commands.json .
+fi
+
 # Check if build succeeded
 if [ $? -ne 0 ]; then
     echo "❌ Build failed. Please check your code."
