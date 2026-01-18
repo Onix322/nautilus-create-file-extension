@@ -1,6 +1,6 @@
 
 cmake_minimum_required(VERSION 3.16)
-project(nautilus_ext LANGUAGES C CXX)
+project(nautilus_create_file_ext LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -15,7 +15,7 @@ file(GLOB_RECURSE SOURCES
 )
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
-target_include_directories(nautilus_ext PRIVATE
+target_include_directories(nautilus_create_file_ext PRIVATE
     ${GTK4_INCLUDE_DIRS}
     ${NAUTILUS_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -23,3 +23,5 @@ target_include_directories(nautilus_ext PRIVATE
 
 target_compile_options(${PROJECT_NAME} PRIVATE ${GTK4_CFLAGS_OTHER} ${NAUTILUS_CFLAGS_OTHER})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${GTK4_LIBRARIES} ${NAUTILUS_LIBRARIES})
+
+

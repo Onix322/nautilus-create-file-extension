@@ -2,7 +2,6 @@
 // Extension Logic (what it does)
 ///////////////////////////////////////////////////////
 // Logic can_button
-#include "gdk/gdk.h"
 #include "glib-object.h"
 #include "glib.h"
 #include "gtk/gtk.h"
@@ -193,7 +192,6 @@ extern "C" GList* get_background_items(NautilusMenuProvider *provider, NautilusF
       );
   char *uri = nautilus_file_info_get_uri(info);
 
-  g_print("%s", uri);
   // activate item
   g_signal_connect_data(item, 
       "activate", 
