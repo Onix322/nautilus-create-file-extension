@@ -2,14 +2,14 @@
 // Extension Logic (what it does)
 ///////////////////////////////////////////////////////
 // Logic can_button
+#include "gdk/gdk.h"
 #include "glib-object.h"
+#include "glib.h"
 #include "gtk/gtk.h"
 #include "gtk/gtkshortcut.h"
 #include <iostream>
 #include <nautilus-extension.h>
 #include <fstream>
-#include <ranges>
-
 
 // Logic acc_button
 struct CurrentLocation {
@@ -48,19 +48,6 @@ struct DialogHandler {
 };
 
 DialogHandler* dialog_handler = new DialogHandler();
-// UTILS
-std::string str_trim(std::string_view s) {
-    auto is_space = [](unsigned char c) { return std::isspace(c); };
-    
-    // Elimină de la început și de la sfârșit folosind "views"
-    auto trimmed = s 
-        | std::views::drop_while(is_space) 
-        | std::views::reverse 
-        | std::views::drop_while(is_space) 
-        | std::views::reverse;
-
-    return {trimmed.begin(), trimmed.end()};
-}
 
 // BUTTONS Logic
 void can_button_clicked(GtkButton* button, gpointer user_data) {
@@ -80,7 +67,6 @@ void acc_button_clicked(GtkButton* button, gpointer user_data) {
     return;
   }
 
-
   GError* error = NULL;
   char* path_literal = g_filename_from_uri(data->path, NULL, &error);
   char* full_path = g_build_filename(path_literal, input_literal, NULL);
@@ -95,6 +81,15 @@ void acc_button_clicked(GtkButton* button, gpointer user_data) {
   outfile.close();  
 }
 
+void acc_button_change_state(GtkButton* button, GtkEntry* entry){
+
+  GtkEntryBuffer* buffer = gtk_entry_get_buffer(GTK_ENTRY(entry));
+  const char* input_literal = gtk_entry_buffer_get_text(buffer);
+
+  gtk_widget_set_sensitive(GTK_WIDGET(button), strlen(input_literal) > 0);
+  // gtk_widget_add_css_class(GTK_WIDGET(button), "suggested-action");
+}
+
 // FACTORY 
 GtkWindow* dialog_factory(GtkWindow* parent, char* path){
 
@@ -105,9 +100,11 @@ GtkWindow* dialog_factory(GtkWindow* parent, char* path){
   gtk_window_set_resizable(GTK_WINDOW(window), false);
   gtk_window_set_title((GTK_WINDOW(window)), "New File");
   gtk_window_set_default_size(GTK_WINDOW(window), 300, 100);
-  //titlebar
+  
+  // titlebar
   GtkWidget* titlebar = gtk_header_bar_new();
   gtk_header_bar_set_use_native_controls(GTK_HEADER_BAR(titlebar), true);
+
   // box
   GtkWidget* box_main = gtk_box_new(GTK_ORIENTATION_VERTICAL, 20);
   GtkWidget* box_entry = gtk_box_new(GTK_ORIENTATION_VERTICAL, 20);
@@ -123,7 +120,6 @@ GtkWindow* dialog_factory(GtkWindow* parent, char* path){
   gtk_box_set_homogeneous(GTK_BOX(box_buttons), true);
   gtk_box_set_spacing(GTK_BOX(box_main), 20);
 
-
   // entry 
   GtkEntryBuffer* buffer = gtk_entry_buffer_new(NULL, -1);
   GtkWidget* entry = gtk_entry_new_with_buffer(buffer);
@@ -132,6 +128,8 @@ GtkWindow* dialog_factory(GtkWindow* parent, char* path){
   GtkWidget* acc_button = gtk_button_new_with_label("Create");
   GtkWidget* can_button = gtk_button_new_with_label("Cancel");
 
+  acc_button_change_state(GTK_BUTTON(acc_button), GTK_ENTRY(entry));
+  
   // BUTTONS WIRERING
   // Details: 
   // on_can_button_clicked gets 2 params 
@@ -153,15 +151,22 @@ GtkWindow* dialog_factory(GtkWindow* parent, char* path){
       data
       );
 
+  g_signal_connect_swapped(
+      entry,
+      "changed",
+      G_CALLBACK(acc_button_change_state),
+      GTK_BUTTON(acc_button)
+      );
+
   // appending
-  gtk_window_set_titlebar(GTK_WINDOW(window), titlebar);
   gtk_box_append(GTK_BOX(box_entry), entry);
   gtk_box_append(GTK_BOX(box_buttons), can_button);
   gtk_box_append(GTK_BOX(box_buttons), acc_button);
-  gtk_window_set_default_widget(GTK_WINDOW(window), acc_button);
   gtk_box_append(GTK_BOX(box_main), box_entry);
   gtk_box_append(GTK_BOX(box_main), box_buttons);
+  
   gtk_window_set_child(GTK_WINDOW(window), box_main);
+  gtk_window_set_titlebar(GTK_WINDOW(window), titlebar);
 
   return GTK_WINDOW(window);
 }
@@ -182,11 +187,13 @@ extern "C" GList* get_background_items(NautilusMenuProvider *provider, NautilusF
   // Create your item
   NautilusMenuItem *item = nautilus_menu_item_new(
       "CreateFileExtension::NewFileAction",
-      "Create File",
+      "Create File...",
       "Create a new file",
       "document-new"
       );
   char *uri = nautilus_file_info_get_uri(info);
+
+  g_print("%s", uri);
   // activate item
   g_signal_connect_data(item, 
       "activate", 
