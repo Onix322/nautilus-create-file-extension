@@ -33,7 +33,7 @@ fi
 
 # 3. Installation
 echo "📦 Copying binary to Nautilus extensions folder..."
-sudo cp out/libnautilus_ext.so /usr/lib/nautilus/extensions-4/
+sudo cp out/libnautilus_create_file_ext.so /usr/lib/nautilus/extensions-4/
 
 # 4. Restart Nautilus to apply changes
 echo "🔄 Restarting Nautilus..."
